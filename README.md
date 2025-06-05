@@ -19,7 +19,7 @@ A command-line tool to bulk create private Discord channels under a specified ca
 
 1. Clone this repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/tinkertanker/discord-personal-folder-creator.git
 cd discord-personal-folder-creator
 ```
 
@@ -36,22 +36,31 @@ pip install -r requirements.txt
 
 ## Setup
 
-1. Run the script:
+1. Copy the example config file:
 ```bash
-python discord_channel_creator.py
+cp config.example.json config.json
 ```
 
-2. Follow the on-screen instructions to:
+2. Edit `config.json` with your Discord bot details:
+```json
+{
+  "bot_token": "YOUR_BOT_TOKEN_HERE",
+  "guild_id": 123456789012345678,
+  "category_name": "Private Channels",
+  "csv_file": "input/sample.csv"
+}
+```
+
+3. Follow the on-screen instructions when you first run the script to:
    - Create a Discord application and bot
    - Get your bot token
    - Add the bot to your server
    - Configure necessary permissions
 
-3. When prompted, provide:
-   - Bot token
-   - Server (Guild) ID
-   - Category name for the channels
-   - Path to your CSV file
+4. Run the script:
+```bash
+python discord_channel_creator.py
+```
 
 ## CSV Formats
 
@@ -80,7 +89,7 @@ channel-name-3,johndoe,janedoe
 - **Username**: `exampleuser` or `johndoe`
 - **Legacy format**: `username#1234`
 
-See `input/sample.csv` and `input/channels_with_invites.csv` for examples. Update your `config.json` to point to your CSV file:
+See `input/sample.csv` for an example. Update your `config.json` to point to your CSV file:
 ```json
 "csv_file": "input/your-channels.csv"
 ```

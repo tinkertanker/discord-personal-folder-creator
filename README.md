@@ -55,7 +55,7 @@ python discord_channel_creator.py
 
 ## CSV Format
 
-Create a CSV file with channel names, one per line:
+Create a CSV file with channel names, one per line, and place it in the `input/` directory:
 
 ```csv
 channel-name-1
@@ -63,7 +63,10 @@ channel-name-2
 channel-name-3
 ```
 
-See `channels.csv` for an example.
+See `input/sample.csv` for an example. Update your `config.json` to point to your CSV file:
+```json
+"csv_file": "input/your-channels.csv"
+```
 
 ## How It Works
 
@@ -96,9 +99,15 @@ This will:
 - Save the file to the `output/` directory
 - Include user IDs, usernames, display names, nicknames, join dates, roles, and status
 
-## Output Directory
+## File Organization
 
-All generated files are saved to the `output/` directory:
+### Input Directory
+- Place your channel list CSV files in the `input/` directory
+- Example: `input/sample.csv`
+- Update `config.json` to point to your CSV file
+
+### Output Directory
+- All generated files are saved to the `output/` directory
 - Member export CSV files: `output/discord_members_YYYYMMDD_HHMMSS.csv`
 - The `output/` directory is gitignored to prevent accidental commits of user data
 

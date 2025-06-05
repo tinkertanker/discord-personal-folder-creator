@@ -53,9 +53,12 @@ python discord_channel_creator.py
    - Category name for the channels
    - Path to your CSV file
 
-## CSV Format
+## CSV Formats
 
-Create a CSV file with channel names, one per line, and place it in the `input/` directory:
+The script automatically detects your CSV format:
+
+### Simple Format (Channel Names Only)
+Create a CSV file with channel names, one per line:
 
 ```csv
 channel-name-1
@@ -63,7 +66,21 @@ channel-name-2
 channel-name-3
 ```
 
-See `input/sample.csv` for an example. Update your `config.json` to point to your CSV file:
+### Advanced Format (With User Invites)
+Include user identifiers to automatically invite specific users:
+
+```csv
+channel-name-1,user_id1,username2
+channel-name-2,123456789012345678,exampleuser
+channel-name-3,johndoe,janedoe
+```
+
+**User identifiers can be:**
+- **Discord User ID** (recommended): `123456789012345678`
+- **Username**: `exampleuser` or `johndoe`
+- **Legacy format**: `username#1234`
+
+See `input/sample.csv` and `input/channels_with_invites.csv` for examples. Update your `config.json` to point to your CSV file:
 ```json
 "csv_file": "input/your-channels.csv"
 ```
@@ -83,7 +100,7 @@ The bot requires:
 - Manage Roles
 - Read Messages/View Channels
 
-Created channels are private by default (only visible to administrators and the bot).
+Created channels are private by default (only visible to administrators and the bot). When using the advanced CSV format with user invites, only the specified users will have access to each channel.
 
 ## Exporting Discord Members
 

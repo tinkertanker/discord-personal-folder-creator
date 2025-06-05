@@ -41,14 +41,32 @@ def get_user_input():
     
     return token, int(guild_id), category_name, csv_file
 
-def read_channel_names(csv_file):
-    channel_names = []
+def read_channels_data(csv_file):
+    """
+    Read CSV file and automatically detect format:
+    - Single column: channel_name (creates private channels with no specific invites)
+    - Multiple columns: channel_name,user1,user2,... (creates channels and invites users)
+    
+    User identifiers can be Discord IDs, usernames, or username#discriminator
+    """
+    channels_data = []
     try:
         with open(csv_file, 'r', encoding='utf-8') as file:
             reader = csv.reader(file)
-            for row in reader:
-                if row:  # Skip empty rows
-                    channel_names.append(row[0].strip())
+            for row_num, row in enumerate(reader, 1):
+                if not row or not row[0].strip():  # Skip empty rows
+                    continue
+                
+                channel_name = row[0].strip()
+                # Get user identifiers from remaining columns
+                user_identifiers = [user.strip() for user in row[1:] if user.strip()]
+                
+                channels_data.append({
+                    'name': channel_name,
+                    'users': user_identifiers,
+                    'row': row_num
+                })
+                
     except FileNotFoundError:
         print(f"Error: CSV file '{csv_file}' not found.")
         sys.exit(1)
@@ -56,7 +74,32 @@ def read_channel_names(csv_file):
         print(f"Error reading CSV file: {e}")
         sys.exit(1)
     
-    return channel_names
+    return channels_data
+
+async def resolve_user(guild, identifier):
+    """
+    Resolve a user identifier to a Discord Member object.
+    Supports: user ID, username, username#discriminator
+    """
+    # Try as user ID first
+    if identifier.isdigit():
+        member = guild.get_member(int(identifier))
+        if member:
+            return member
+    
+    # Try as username (with or without discriminator)
+    if '#' in identifier:
+        # Legacy username#discriminator format
+        username, discriminator = identifier.rsplit('#', 1)
+        member = discord.utils.get(guild.members, name=username, discriminator=discriminator)
+    else:
+        # Modern username format or display name
+        member = discord.utils.get(guild.members, name=identifier)
+        if not member:
+            # Also try display name
+            member = discord.utils.get(guild.members, display_name=identifier)
+    
+    return member
 
 @bot.event
 async def on_ready():
@@ -70,6 +113,7 @@ async def on_ready():
         return
     
     print(f"Connected to server: {guild.name}")
+    print(f"Total members: {guild.member_count}")
     
     # Find or create category
     category = discord.utils.get(guild.categories, name=config['category_name'])
@@ -89,14 +133,26 @@ async def on_ready():
     else:
         print(f"Found existing category: {config['category_name']}")
     
-    # Create channels
-    channel_names = read_channel_names(config['csv_file'])
-    print(f"\nCreating {len(channel_names)} private channels...")
+    # Read channels and user data
+    channels_data = read_channels_data(config['csv_file'])
+    print(f"\nProcessing {len(channels_data)} channels...")
+    
+    # Detect CSV format
+    has_invites = any(channel_info['users'] for channel_info in channels_data)
+    if has_invites:
+        print("Detected CSV with user invites - creating channels with specific user access")
+    else:
+        print("Detected simple CSV format - creating private channels")
     
     created = 0
     skipped = 0
+    warnings = []
     
-    for name in channel_names:
+    for channel_info in channels_data:
+        name = channel_info['name']
+        user_identifiers = channel_info['users']
+        row_num = channel_info['row']
+        
         # Check if channel already exists in this category
         existing_channel = discord.utils.get(category.channels, name=name)
         
@@ -106,18 +162,38 @@ async def on_ready():
             continue
         
         try:
-            # Create private channel with restricted permissions
+            # Start with base permissions (hidden from everyone)
             overwrites = {
                 guild.default_role: discord.PermissionOverwrite(read_messages=False),
                 guild.me: discord.PermissionOverwrite(read_messages=True)
             }
             
+            # Add user permissions if specified
+            resolved_users = []
+            if user_identifiers:
+                for identifier in user_identifiers:
+                    member = await resolve_user(guild, identifier)
+                    if member:
+                        overwrites[member] = discord.PermissionOverwrite(
+                            read_messages=True,
+                            send_messages=True,
+                            view_channel=True
+                        )
+                        resolved_users.append(f"{member.name} ({member.id})")
+                    else:
+                        warnings.append(f"Row {row_num}: Could not find user '{identifier}' for channel '{name}'")
+            
+            # Create the channel
             channel = await category.create_text_channel(
                 name=name,
                 overwrites=overwrites
             )
             
-            print(f"  Created private channel: {channel.name}")
+            if resolved_users:
+                print(f"  Created private channel: {channel.name} - Invited: {', '.join(resolved_users)}")
+            else:
+                print(f"  Created private channel: {channel.name}")
+            
             created += 1
             
             # Small delay to avoid rate limits
@@ -131,6 +207,12 @@ async def on_ready():
             print(f"  Unexpected error creating channel '{name}': {e}")
     
     print(f"\nComplete! Created {created} channels, skipped {skipped} existing channels.")
+    
+    # Print warnings if any
+    if warnings:
+        print(f"\n⚠️  Warnings ({len(warnings)}):")
+        for warning in warnings:
+            print(f"  - {warning}")
     
     # Disconnect bot after completion
     await bot.close()

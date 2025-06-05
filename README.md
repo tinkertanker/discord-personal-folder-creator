@@ -82,8 +82,29 @@ The bot requires:
 
 Created channels are private by default (only visible to administrators and the bot).
 
+## Exporting Discord Members
+
+To export a list of server members to CSV:
+
+```bash
+python export_members.py
+```
+
+This will:
+- Connect to your Discord server
+- Export all members (excluding bots by default) to a timestamped CSV file
+- Save the file to the `output/` directory
+- Include user IDs, usernames, display names, nicknames, join dates, roles, and status
+
+## Output Directory
+
+All generated files are saved to the `output/` directory:
+- Member export CSV files: `output/discord_members_YYYYMMDD_HHMMSS.csv`
+- The `output/` directory is gitignored to prevent accidental commits of user data
+
 ## Notes
 
 - Channel names are automatically formatted (spaces become hyphens, lowercase)
 - The bot disconnects automatically after creating all channels
 - A small delay is added between channel creations to avoid rate limits
+- Exported member data is saved with UTF-8 encoding to handle special characters

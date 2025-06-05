@@ -28,3 +28,7 @@ token.txt
 
 # Test files
 test_*.csv
+
+# Output files
+output/*
+!output/.gitkeep

@@ -2,5 +2,7 @@
   "bot_token": "YOUR_BOT_TOKEN_HERE",
   "guild_id": 123456789012345678,
   "category_name": "Private Channels",
-  "csv_file": "channels.csv"
+  "csv_file": "channels.csv",
+  "output_file": "discord_members.csv",
+  "skip_bots": true
 }

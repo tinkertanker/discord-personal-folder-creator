@@ -5,6 +5,7 @@ import csv
 import asyncio
 import os
 import sys
+import json
 
 intents = discord.Intents.default()
 intents.guilds = True
@@ -134,11 +135,27 @@ async def on_ready():
     # Disconnect bot after completion
     await bot.close()
 
+def load_config():
+    # Check for config.json first
+    if os.path.exists('config.json'):
+        with open('config.json', 'r') as f:
+            return json.load(f)
+    return None
+
 def main():
-    print_setup_instructions()
+    # Try to load config from file first
+    file_config = load_config()
     
-    # Get user input
-    token, guild_id, category_name, csv_file = get_user_input()
+    if file_config:
+        print("Using configuration from config.json")
+        token = file_config['bot_token']
+        guild_id = file_config['guild_id']
+        category_name = file_config['category_name']
+        csv_file = file_config['csv_file']
+    else:
+        print_setup_instructions()
+        # Get user input
+        token, guild_id, category_name, csv_file = get_user_input()
     
     # Store configuration globally
     global config

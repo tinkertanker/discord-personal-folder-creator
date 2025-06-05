@@ -23,7 +23,13 @@ git clone <repository-url>
 cd discord-personal-folder-creator
 ```
 
-2. Install dependencies:
+2. Set up Python virtual environment:
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```

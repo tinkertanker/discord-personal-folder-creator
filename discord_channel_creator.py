@@ -145,6 +145,7 @@ async def on_ready():
         print("Detected simple CSV format - creating private channels")
     
     created = 0
+    updated = 0
     skipped = 0
     warnings = []
     
@@ -157,8 +158,36 @@ async def on_ready():
         existing_channel = discord.utils.get(category.channels, name=name)
         
         if existing_channel:
-            print(f"  Skipping '{name}' - already exists")
-            skipped += 1
+            # Channel exists - add specified users to it
+            if user_identifiers:
+                added_users = []
+                for identifier in user_identifiers:
+                    member = await resolve_user(guild, identifier)
+                    if member:
+                        # Update permissions for this user
+                        await existing_channel.set_permissions(
+                            member,
+                            read_messages=True,
+                            send_messages=True,
+                            view_channel=True
+                        )
+                        added_users.append(f"{member.name} ({member.id})")
+                    else:
+                        warnings.append(f"Row {row_num}: Could not find user '{identifier}' for existing channel '{name}'")
+                
+                if added_users:
+                    print(f"  Updated existing channel '{name}' - Added users: {', '.join(added_users)}")
+                    updated += 1
+                else:
+                    print(f"  Channel '{name}' exists but no valid users to add")
+                    skipped += 1
+                
+                # Small delay to avoid rate limits
+                await asyncio.sleep(0.5)
+            else:
+                print(f"  Skipping '{name}' - already exists with no users to add")
+                skipped += 1
+            
             continue
         
         try:
@@ -206,7 +235,7 @@ async def on_ready():
         except Exception as e:
             print(f"  Unexpected error creating channel '{name}': {e}")
     
-    print(f"\nComplete! Created {created} channels, skipped {skipped} existing channels.")
+    print(f"\nComplete! Created {created} new channels, updated {updated} existing channels, skipped {skipped} channels.")
     
     # Print warnings if any
     if warnings:

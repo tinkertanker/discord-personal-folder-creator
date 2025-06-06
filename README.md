@@ -5,9 +5,10 @@ A command-line tool to bulk create private Discord channels under a specified ca
 ## Features
 
 - Creates multiple private text channels from a CSV list
+- Updates existing channels by adding new users when specified in CSV
 - Organizes channels under a specified category
 - Provides clear setup instructions for Discord Developer Portal
-- Skips existing channels to avoid duplicates
+- Handles existing channels intelligently (updates permissions instead of skipping)
 - Sets channels as private (hidden from @everyone role)
 
 ## Prerequisites
@@ -98,9 +99,12 @@ See `input/sample.csv` for an example. Update your `config.json` to point to you
 
 1. The bot connects to your Discord server
 2. Creates or finds the specified category
-3. Reads channel names from the CSV file
-4. Creates private text channels with restricted permissions
-5. Skips any channels that already exist
+3. Reads channel names and optional user lists from the CSV file
+4. For each channel:
+   - If it doesn't exist: Creates a private text channel with restricted permissions
+   - If it exists and has users specified: Adds those users to the existing channel
+   - If it exists with no users specified: Skips it
+5. Reports the number of channels created, updated, and skipped
 
 ## Permissions
 

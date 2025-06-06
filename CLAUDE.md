@@ -9,6 +9,7 @@ Discord Personal Folder Creator is a Python command-line tool that automates the
 **Key Features:**
 - Auto-detects CSV format (simple channel names vs. channels with user invites)
 - Supports bulk channel creation with optional user-specific permissions
+- Updates existing channels by adding new users instead of skipping
 - Includes member export functionality to get Discord user IDs
 - Organized file structure with input/output directories
 
@@ -39,6 +40,7 @@ The project contains two main scripts:
 - **Bot Initialization**: Uses discord.py with specific intents (guilds, members)
 - **Event-Driven Execution**: All channel creation happens in the `on_ready` event
 - **User Resolution**: Supports Discord IDs, usernames, and legacy username#discriminator format
+- **Existing Channel Handling**: Updates permissions for existing channels when users are specified
 - **Auto-disconnect**: Bot closes connection after completing all operations
 
 ### export_members.py
@@ -93,6 +95,7 @@ The bot:
 - Skips empty rows
 - Discord automatically formats names (spaces → hyphens, lowercase)
 - Resolves user identifiers and sets appropriate permissions
+- For existing channels: adds specified users instead of skipping
 
 ## Discord Permissions
 
